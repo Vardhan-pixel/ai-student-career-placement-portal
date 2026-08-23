@@ -12,6 +12,7 @@ const jobSchema = new mongoose.Schema(
     branches: [{ type: String, trim: true, maxlength: 100 }],
     applicationDeadline: { type: Date },
     isActive: { type: Boolean, default: true },
+    postedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   },
   { timestamps: true },
 );

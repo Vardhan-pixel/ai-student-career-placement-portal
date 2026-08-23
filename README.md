@@ -89,3 +89,13 @@ Signed-in students see skills-based match scores, can apply once for each job, a
 ## Phase 5: career roadmap
 
 The protected `GET /api/career/roadmap` endpoint uses the student's saved skills and current job requirements to provide a best match, highlight skill gaps, and create a practical next-step checklist. Refresh the roadmap after saving changes to the profile.
+
+## Phase 6: recruiter dashboard
+
+Create the demo recruiter account, then sign out and sign in with the displayed credentials:
+
+```bash
+npm run seed:recruiter --prefix server
+```
+
+Recruiters can post jobs, view their applicants, and update each application to shortlisted, rejected, or selected.

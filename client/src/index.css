@@ -32,7 +32,7 @@ h1 { font-size: clamp(2.4rem, 7vw, 5rem); line-height: 1; margin: .5rem 0 1rem; 
 .auth-tabs button.active { border-bottom: 2px solid #60a5fa; color: #fff; }
 form { display: grid; gap: 1rem; margin-top: 1rem; }
 label { color: #dbeafe; display: grid; font-size: .9rem; gap: .4rem; }
-input { background: #0f172a; border: 1px solid #475569; border-radius: .5rem; color: #fff; font: inherit; padding: .7rem; }
+input, select { background: #0f172a; border: 1px solid #475569; border-radius: .5rem; color: #fff; font: inherit; padding: .7rem; }
 textarea { background: #0f172a; border: 1px solid #475569; border-radius: .5rem; color: #fff; font: inherit; padding: .7rem; resize: vertical; }
 label span { color: #94a3b8; font-weight: 400; }
 .form-row { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -59,4 +59,8 @@ label span { color: #94a3b8; font-weight: 400; }
 .best-match { color: #dbeafe; }
 .skills-gap { background: #172554; border-radius: .5rem; color: #bfdbfe; padding: .8rem; }
 .roadmap-list { color: #cbd5e1; display: grid; gap: .65rem; line-height: 1.5; padding-left: 1.5rem; }
+.applicant-card { background: #111c33; border: 1px solid #334155; border-radius: .75rem; display: grid; gap: .3rem; margin-top: .8rem; padding: 1rem; }
+.applicant-card p { margin: .3rem 0; }
+.status-actions { align-items: center; display: flex; flex-wrap: wrap; gap: .5rem; }
+.status-actions button { background: #334155; border: 0; border-radius: .35rem; color: white; cursor: pointer; padding: .4rem .55rem; text-transform: capitalize; }
 @media (max-width: 560px) { .form-row, .job-grid { grid-template-columns: 1fr; } .section-heading, .application-row { align-items: flex-start; flex-direction: column; } }

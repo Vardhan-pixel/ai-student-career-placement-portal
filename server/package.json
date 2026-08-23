@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "seed:jobs": "node src/scripts/seedJobs.js"
+    "seed:jobs": "node src/scripts/seedJobs.js",
+    "seed:recruiter": "node src/scripts/seedRecruiter.js"
   },
   "dependencies": {
     "bcryptjs": "latest",

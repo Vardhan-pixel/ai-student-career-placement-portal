@@ -198,7 +198,9 @@ export default function App() {
           <span className="health__dot" aria-hidden="true" />
           {health.message}
         </div>
-        {auth ? (
+        {auth ? (auth.user.role === 'recruiter' ? (
+          <RecruiterDashboard user={auth.user} onSignOut={signOut} />
+        ) : (
           <section className="auth-card" aria-label="Signed-in account">
             <p className="eyebrow">Phase 3 · Student profile</p>
             <h2>Welcome, {auth.user.name}</h2>
@@ -276,6 +278,7 @@ export default function App() {
             </section>
             <button type="button" className="secondary-button" onClick={signOut}>Sign out</button>
           </section>
+        )
         ) : (
           <section className="auth-card" aria-labelledby="auth-heading">
             <div className="auth-tabs">
@@ -294,5 +297,87 @@ export default function App() {
         )}
       </section>
     </main>
+  );
+}
+
+function RecruiterDashboard({ user, onSignOut }) {
+  const [jobs, setJobs] = useState([]);
+  const [status, setStatus] = useState('');
+  const [selected, setSelected] = useState(null);
+  const [applications, setApplications] = useState([]);
+  const [form, setForm] = useState({ title: '', company: '', location: '', workMode: 'On-site', description: '', requiredSkills: '', minCgpa: '', branches: '' });
+
+  useEffect(() => { loadJobs(); }, []);
+
+  const headers = () => ({ 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('placementPortalToken')}` });
+
+  async function loadJobs() {
+    try {
+      const response = await fetch(`${apiUrl}/recruiter/jobs`, { headers: headers() });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message ?? 'Unable to load posted jobs.');
+      setJobs(data.jobs);
+    } catch (error) { setStatus(error.message); }
+  }
+
+  async function postJob(event) {
+    event.preventDefault();
+    setStatus('Posting job…');
+    const payload = {
+      ...form,
+      requiredSkills: form.requiredSkills.split(','),
+      branches: form.branches.split(','),
+      minCgpa: form.minCgpa ? Number(form.minCgpa) : 0,
+    };
+    try {
+      const response = await fetch(`${apiUrl}/recruiter/jobs`, { method: 'POST', headers: headers(), body: JSON.stringify(payload) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message ?? 'Unable to post job.');
+      setForm({ title: '', company: '', location: '', workMode: 'On-site', description: '', requiredSkills: '', minCgpa: '', branches: '' });
+      setStatus('Job posted successfully.');
+      await loadJobs();
+    } catch (error) { setStatus(error.message); }
+  }
+
+  async function viewApplications(job) {
+    setSelected(job);
+    setStatus('Loading applicants…');
+    try {
+      const response = await fetch(`${apiUrl}/recruiter/jobs/${job._id}/applications`, { headers: headers() });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message ?? 'Unable to load applicants.');
+      setApplications(data.applications);
+      setStatus('');
+    } catch (error) { setStatus(error.message); }
+  }
+
+  async function updateStatus(applicationId, applicationStatus) {
+    try {
+      const response = await fetch(`${apiUrl}/recruiter/applications/${applicationId}`, { method: 'PATCH', headers: headers(), body: JSON.stringify({ status: applicationStatus }) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message ?? 'Unable to update application.');
+      await viewApplications(selected);
+    } catch (error) { setStatus(error.message); }
+  }
+
+  return (
+    <section className="auth-card recruiter-dashboard" aria-label="Recruiter dashboard">
+      <p className="eyebrow">Phase 6 · Recruiter dashboard</p>
+      <h2>Welcome, {user.name}</h2>
+      <p>Post opportunities and manage student applications.</p>
+      <form onSubmit={postJob}>
+        <h3>Post a job</h3>
+        <div className="form-row"><label>Job title<input required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} /></label><label>Company<input required value={form.company} onChange={(event) => setForm({ ...form, company: event.target.value })} /></label></div>
+        <div className="form-row"><label>Location<input required value={form.location} onChange={(event) => setForm({ ...form, location: event.target.value })} /></label><label>Work mode<select value={form.workMode} onChange={(event) => setForm({ ...form, workMode: event.target.value })}><option>On-site</option><option>Hybrid</option><option>Remote</option></select></label></div>
+        <label>Description<textarea required rows="4" value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} /></label>
+        <div className="form-row"><label>Required skills <span>(comma-separated)</span><input required value={form.requiredSkills} onChange={(event) => setForm({ ...form, requiredSkills: event.target.value })} placeholder="React, Node.js" /></label><label>Minimum CGPA<input type="number" min="0" max="10" step="0.01" value={form.minCgpa} onChange={(event) => setForm({ ...form, minCgpa: event.target.value })} /></label></div>
+        <label>Eligible branches <span>(comma-separated)</span><input value={form.branches} onChange={(event) => setForm({ ...form, branches: event.target.value })} placeholder="Computer Science, IT" /></label>
+        <button className="primary-button">Post job</button>
+      </form>
+      {status && <p className={status === 'Job posted successfully.' ? 'form-success' : 'form-error'} role="status">{status}</p>}
+      <section className="jobs-section"><h2>My posted jobs</h2>{jobs.length ? jobs.map((job) => <div className="application-row" key={job._id}><span><strong>{job.title}</strong> · {job.company}</span><button type="button" className="secondary-button" onClick={() => viewApplications(job)}>View applicants</button></div>) : <p className="muted">No jobs posted yet.</p>}</section>
+      {selected && <section className="applications-section"><h2>Applicants for {selected.title}</h2>{applications.length ? applications.map((application) => <article className="applicant-card" key={application._id}><strong>{application.student?.name}</strong><span>{application.student?.email}</span><p>{application.student?.profile?.education?.college || 'Education not added'} · {application.student?.profile?.education?.cgpa ?? '—'} CGPA</p><p className="skills">{application.student?.profile?.skills?.join(' · ') || 'Skills not added'}</p><div className="status-actions"><span className="status-pill">{application.status}</span>{['shortlisted', 'rejected', 'selected'].map((applicationStatus) => <button type="button" key={applicationStatus} onClick={() => updateStatus(application._id, applicationStatus)}>{applicationStatus}</button>)}</div></article>) : <p className="muted">No applications yet.</p>}</section>}
+      <button type="button" className="secondary-button" onClick={onSignOut}>Sign out</button>
+    </section>
   );
 }
