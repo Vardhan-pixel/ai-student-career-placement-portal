@@ -85,3 +85,7 @@ npm run seed:jobs --prefix server
 ```
 
 Signed-in students see skills-based match scores, can apply once for each job, and can track application status. The relevant API endpoints are `GET /api/jobs/recommended`, `POST /api/jobs/:jobId/apply`, and `GET /api/applications/me`.
+
+## Phase 5: career roadmap
+
+The protected `GET /api/career/roadmap` endpoint uses the student's saved skills and current job requirements to provide a best match, highlight skill gaps, and create a practical next-step checklist. Refresh the roadmap after saving changes to the profile.

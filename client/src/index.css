@@ -42,7 +42,7 @@ label span { color: #94a3b8; font-weight: 400; }
 .secondary-button { background: #334155; color: white; }
 .form-error { color: #fca5a5; margin: 0; }
 .form-success { color: #86efac; margin: 0; }
-.jobs-section, .applications-section { border-top: 1px solid #334155; margin-top: 2rem; padding-top: 1.5rem; }
+.roadmap-section, .jobs-section, .applications-section { border-top: 1px solid #334155; margin-top: 2rem; padding-top: 1.5rem; }
 .section-heading { align-items: center; display: flex; justify-content: space-between; gap: 1rem; }
 .section-heading h2 { margin-bottom: 0; }
 .muted { color: #94a3b8; }
@@ -56,4 +56,7 @@ label span { color: #94a3b8; font-weight: 400; }
 .skills { color: #93c5fd !important; font-size: .9rem; }
 .application-row { align-items: center; background: #111c33; border-radius: .5rem; display: flex; justify-content: space-between; margin-top: .75rem; padding: .8rem; }
 .status-pill { background: #1d4ed8; border-radius: 999px; color: white; font-size: .8rem; padding: .25rem .6rem; text-transform: capitalize; }
+.best-match { color: #dbeafe; }
+.skills-gap { background: #172554; border-radius: .5rem; color: #bfdbfe; padding: .8rem; }
+.roadmap-list { color: #cbd5e1; display: grid; gap: .65rem; line-height: 1.5; padding-left: 1.5rem; }
 @media (max-width: 560px) { .form-row, .job-grid { grid-template-columns: 1fr; } .section-heading, .application-row { align-items: flex-start; flex-direction: column; } }

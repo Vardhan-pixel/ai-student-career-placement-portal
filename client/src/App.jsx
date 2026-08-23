@@ -18,6 +18,8 @@ export default function App() {
   const [jobs, setJobs] = useState([]);
   const [applications, setApplications] = useState([]);
   const [jobStatus, setJobStatus] = useState('');
+  const [roadmap, setRoadmap] = useState(null);
+  const [roadmapStatus, setRoadmapStatus] = useState('');
 
   useEffect(() => {
     fetch(`${apiUrl}/health`)
@@ -54,6 +56,7 @@ export default function App() {
   useEffect(() => {
     if (!auth) return;
     loadCareerData();
+    loadRoadmap();
   }, [auth]);
 
   function updateField(event) {
@@ -92,6 +95,7 @@ export default function App() {
     setProfileStatus('');
     setJobs([]);
     setApplications([]);
+    setRoadmap(null);
   }
 
   async function loadCareerData() {
@@ -109,6 +113,19 @@ export default function App() {
       setApplications(applicationData.applications);
     } catch (requestError) {
       setJobStatus(requestError.message);
+    }
+  }
+
+  async function loadRoadmap() {
+    setRoadmapStatus('');
+    const token = localStorage.getItem('placementPortalToken');
+    try {
+      const response = await fetch(`${apiUrl}/career/roadmap`, { headers: { Authorization: `Bearer ${token}` } });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message ?? 'Unable to create your roadmap.');
+      setRoadmap(data);
+    } catch (requestError) {
+      setRoadmapStatus(requestError.message);
     }
   }
 
@@ -162,6 +179,8 @@ export default function App() {
       if (!response.ok) throw new Error(data.message ?? 'Unable to save your profile.');
       setProfile({ ...data.profile, skills: data.profile.skills.join(', ') });
       setProfileStatus('Profile saved.');
+      await loadCareerData();
+      await loadRoadmap();
     } catch (requestError) {
       setProfileStatus(requestError.message);
     }
@@ -203,6 +222,22 @@ export default function App() {
                 <button className="primary-button">Save profile</button>
               </form>
             )}
+            <section className="roadmap-section" aria-labelledby="roadmap-heading">
+              <div className="section-heading">
+                <div>
+                  <p className="eyebrow">Phase 5 · Career roadmap</p>
+                  <h2 id="roadmap-heading">Your next steps</h2>
+                </div>
+                <button type="button" className="secondary-button" onClick={loadRoadmap}>Refresh roadmap</button>
+              </div>
+              {roadmapStatus && <p className="form-error" role="alert">{roadmapStatus}</p>}
+              {roadmap && <>
+                <p className="muted">Goal: {roadmap.goal}</p>
+                {roadmap.bestMatch && <p className="best-match">Best current match: <strong>{roadmap.bestMatch.title}</strong> at {roadmap.bestMatch.company} ({roadmap.bestMatch.score}%).</p>}
+                <p className="skills-gap"><strong>Skills to strengthen:</strong> {roadmap.missingSkills.length ? roadmap.missingSkills.join(', ') : 'You meet the listed requirements for your best match.'}</p>
+                <ol className="roadmap-list">{roadmap.steps.map((step) => <li key={step}>{step}</li>)}</ol>
+              </>}
+            </section>
             <section className="jobs-section" aria-labelledby="jobs-heading">
               <div className="section-heading">
                 <div>
