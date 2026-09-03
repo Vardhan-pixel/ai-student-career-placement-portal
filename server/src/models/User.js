@@ -38,6 +38,12 @@ const userSchema = new mongoose.Schema(
       skills: [{ type: String, trim: true, maxlength: 50 }],
       projects: { type: String, trim: true, maxlength: 2000 },
       careerGoal: { type: String, trim: true, maxlength: 500 },
+      resume: {
+        fileName: { type: String, trim: true },
+        originalName: { type: String, trim: true },
+        skills: [{ type: String, trim: true, maxlength: 50 }],
+        uploadedAt: { type: Date },
+      },
     },
   },
   { timestamps: true },

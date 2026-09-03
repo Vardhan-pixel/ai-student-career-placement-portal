@@ -8,7 +8,6 @@ import applicationRoutes from './routes/applicationRoutes.js';
 import careerRoutes from './routes/careerRoutes.js';
 import recruiterRoutes from './routes/recruiterRoutes.js';
 import adminRoutes from './routes/adminRoutes.js';
-import resumeRoutes from './routes/resumeRoutes.js';
 
 const app = express();
 
@@ -21,7 +20,6 @@ app.use('/api/applications', applicationRoutes);
 app.use('/api/career', careerRoutes);
 app.use('/api/recruiter', recruiterRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api/resume', resumeRoutes);
 
 app.get('/api', (_request, response) => {
   response.json({ message: 'Placement Portal API is running.' });

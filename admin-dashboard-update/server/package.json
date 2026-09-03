@@ -16,9 +16,7 @@
     "dotenv": "latest",
     "express": "latest",
     "jsonwebtoken": "latest",
-    "mongoose": "latest",
-    "multer": "^2.3.0",
-    "pdf-parse": "1.1.1"
+    "mongoose": "latest"
   },
   "devDependencies": {
     "nodemon": "latest"

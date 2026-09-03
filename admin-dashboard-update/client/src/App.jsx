@@ -20,9 +20,6 @@ export default function App() {
   const [jobStatus, setJobStatus] = useState('');
   const [roadmap, setRoadmap] = useState(null);
   const [roadmapStatus, setRoadmapStatus] = useState('');
-  const [resume, setResume] = useState(null);
-  const [resumeStatus, setResumeStatus] = useState('');
-  const [resumeUploading, setResumeUploading] = useState(false);
 
   useEffect(() => {
     fetch(`${apiUrl}/health`)
@@ -60,7 +57,6 @@ export default function App() {
     if (!auth) return;
     loadCareerData();
     loadRoadmap();
-    loadResume();
   }, [auth]);
 
   function updateField(event) {
@@ -100,8 +96,6 @@ export default function App() {
     setJobs([]);
     setApplications([]);
     setRoadmap(null);
-    setResume(null);
-    setResumeStatus('');
   }
 
   async function loadCareerData() {
@@ -133,69 +127,6 @@ export default function App() {
     } catch (requestError) {
       setRoadmapStatus(requestError.message);
     }
-  }
-
-  async function loadResume() {
-    const token = localStorage.getItem('placementPortalToken');
-    try {
-      const response = await fetch(`${apiUrl}/resume`, { headers: { Authorization: `Bearer ${token}` } });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message ?? 'Unable to load resume status.');
-      setResume(data.resume);
-    } catch (requestError) {
-      setResumeStatus(requestError.message);
-    }
-  }
-
-  async function uploadResume(event) {
-    const file = event.target.files?.[0];
-    if (!file) return;
-    if (file.type !== 'application/pdf') {
-      setResumeStatus('Please choose a PDF file.');
-      return;
-    }
-    setResumeUploading(true);
-    setResumeStatus('Uploading and analyzing your resume…');
-    const token = localStorage.getItem('placementPortalToken');
-    const formData = new FormData();
-    formData.append('resume', file);
-    try {
-      const response = await fetch(`${apiUrl}/resume/upload`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}` },
-        body: formData,
-      });
-      const data = await response.json();
-      if (!response.ok) throw new Error(data.message ?? 'Unable to upload your resume.');
-      setResume(data.resume);
-      setResumeStatus('Resume uploaded and analyzed.');
-      await loadCareerData();
-      await loadRoadmap();
-    } catch (requestError) {
-      setResumeStatus(requestError.message);
-    } finally {
-      setResumeUploading(false);
-      event.target.value = '';
-    }
-  }
-
-  function downloadResume() {
-    const token = localStorage.getItem('placementPortalToken');
-    fetch(`${apiUrl}/resume/download`, { headers: { Authorization: `Bearer ${token}` } })
-      .then(async (response) => {
-        if (!response.ok) {
-          const data = await response.json();
-          throw new Error(data.message ?? 'Unable to download resume.');
-        }
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = resume?.originalName || 'resume.pdf';
-        link.click();
-        window.URL.revokeObjectURL(url);
-      })
-      .catch((requestError) => setResumeStatus(requestError.message));
   }
 
   async function applyForJob(jobId) {
@@ -295,29 +226,6 @@ export default function App() {
                 <button className="primary-button">Save profile</button>
               </form>
             )}
-            <section className="resume-section" aria-labelledby="resume-heading">
-              <div className="section-heading">
-                <div>
-                  <p className="eyebrow">Resume</p>
-                  <h2 id="resume-heading">Upload &amp; analyze your resume</h2>
-                </div>
-              </div>
-              <p className="muted">Upload a PDF resume. Skills detected in it are added to your job match score and roadmap automatically.</p>
-              <label className="upload-label">
-                {resumeUploading ? 'Uploading…' : resume ? 'Replace resume (PDF)' : 'Choose resume (PDF)'}
-                <input type="file" accept="application/pdf" onChange={uploadResume} disabled={resumeUploading} hidden />
-              </label>
-              {resumeStatus && <p className={resumeStatus.includes('analyzed') ? 'form-success' : 'form-error'} role="status">{resumeStatus}</p>}
-              {resume && (
-                <div className="resume-summary">
-                  <div className="application-row">
-                    <span><strong>{resume.originalName}</strong> · uploaded {new Date(resume.uploadedAt).toLocaleDateString()}</span>
-                    <button type="button" className="secondary-button" onClick={downloadResume}>Download</button>
-                  </div>
-                  <p className="skills">{resume.skills?.length ? `Skills detected: ${resume.skills.join(' · ')}` : 'No known skill keywords were detected in this file.'}</p>
-                </div>
-              )}
-            </section>
             <section className="roadmap-section" aria-labelledby="roadmap-heading">
               <div className="section-heading">
                 <div>

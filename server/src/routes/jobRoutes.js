@@ -3,6 +3,7 @@ import { requireAuth } from '../middleware/auth.js';
 import Application from '../models/Application.js';
 import Job from '../models/Job.js';
 import User from '../models/User.js';
+import { combinedSkills } from '../utils/matching.js';
 
 const router = Router();
 
@@ -29,7 +30,7 @@ router.get('/recommended', requireAuth, async (request, response) => {
 
   const jobs = await Job.find({ isActive: true }).sort({ createdAt: -1 });
   const recommendations = jobs
-    .map((job) => ({ ...job.toObject(), matchScore: matchScore(job, user.profile?.skills) }))
+    .map((job) => ({ ...job.toObject(), matchScore: matchScore(job, combinedSkills(user)) }))
     .sort((first, second) => second.matchScore - first.matchScore);
 
   return response.json({ jobs: recommendations });

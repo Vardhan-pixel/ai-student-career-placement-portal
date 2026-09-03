@@ -12,6 +12,9 @@ dist/
 coverage/
 work/
 
+# Uploaded files
+server/uploads/
+
 # Editor and system files
 .DS_Store
 .vscode/

@@ -40,9 +40,6 @@ label span { color: #94a3b8; font-weight: 400; }
 .primary-button { background: #3b82f6; color: white; }
 .primary-button:disabled { cursor: wait; opacity: .7; }
 .secondary-button { background: #334155; color: white; }
-.upload-label { align-items: center; background: #334155; border-radius: .5rem; color: white; cursor: pointer; display: inline-flex; font-weight: 700; padding: .75rem 1rem; width: fit-content; }
-.upload-label:has(input:disabled) { cursor: not-allowed; opacity: .6; }
-.resume-summary { background: #111c33; border: 1px solid #334155; border-radius: .75rem; display: grid; gap: .5rem; margin-top: 1rem; padding: 1rem; }
 .form-error { color: #fca5a5; margin: 0; }
 .form-success { color: #86efac; margin: 0; }
 .roadmap-section, .jobs-section, .applications-section { border-top: 1px solid #334155; margin-top: 2rem; padding-top: 1.5rem; }

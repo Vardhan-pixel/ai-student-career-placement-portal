@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { requireAuth } from '../middleware/auth.js';
 import Job from '../models/Job.js';
 import User from '../models/User.js';
+import { combinedSkills } from '../utils/matching.js';
 
 const router = Router();
 
@@ -14,7 +15,7 @@ router.get('/roadmap', requireAuth, async (request, response) => {
   if (!user) return response.status(404).json({ message: 'Account not found.' });
 
   const jobs = await Job.find({ isActive: true });
-  const currentSkills = new Set(normalise(user.profile?.skills));
+  const currentSkills = new Set(normalise(combinedSkills(user)));
   const rankedJobs = jobs
     .map((job) => {
       const requirements = normalise(job.requiredSkills);

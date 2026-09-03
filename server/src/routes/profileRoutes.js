@@ -41,6 +41,7 @@ router.put('/', async (request, response) => {
     skills: skills.map((skill) => skill.trim()).filter(Boolean),
     projects,
     careerGoal,
+    resume: user.profile?.resume,
   };
   await user.save();
 
