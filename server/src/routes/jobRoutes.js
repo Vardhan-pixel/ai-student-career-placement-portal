@@ -29,8 +29,21 @@ router.get('/recommended', requireAuth, async (request, response) => {
   if (!user) return response.status(404).json({ message: 'Account not found.' });
 
   const jobs = await Job.find({ isActive: true }).sort({ createdAt: -1 });
+  const { q = '', workMode = '', minMatch = '0' } = request.query;
+  const searchText = String(q).trim().toLowerCase();
+  const minimumMatch = Math.min(100, Math.max(0, Number(minMatch) || 0));
+
   const recommendations = jobs
     .map((job) => ({ ...job.toObject(), matchScore: matchScore(job, combinedSkills(user)) }))
+    .filter((job) => !workMode || job.workMode === workMode)
+    .filter((job) => job.matchScore >= minimumMatch)
+    .filter((job) => {
+      if (!searchText) return true;
+      const haystack = [job.title, job.company, job.location, ...(job.requiredSkills ?? [])]
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(searchText);
+    })
     .sort((first, second) => second.matchScore - first.matchScore);
 
   return response.json({ jobs: recommendations });
