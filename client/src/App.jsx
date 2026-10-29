@@ -20,6 +20,8 @@ export default function App() {
   const [jobStatus, setJobStatus] = useState('');
   const [roadmap, setRoadmap] = useState(null);
   const [roadmapStatus, setRoadmapStatus] = useState('');
+  const defaultJobFilters = { q: '', workMode: '', minMatch: '0' };
+  const [jobFilters, setJobFilters] = useState(defaultJobFilters);
   const [resume, setResume] = useState(null);
   const [resumeStatus, setResumeStatus] = useState('');
   const [resumeUploading, setResumeUploading] = useState(false);
@@ -104,11 +106,16 @@ export default function App() {
     setResumeStatus('');
   }
 
-  async function loadCareerData() {
+  async function loadCareerData(filters = jobFilters) {
     const token = localStorage.getItem('placementPortalToken');
+    const params = new URLSearchParams();
+    if (filters.q.trim()) params.set('q', filters.q.trim());
+    if (filters.workMode) params.set('workMode', filters.workMode);
+    if (Number(filters.minMatch) > 0) params.set('minMatch', filters.minMatch);
+    const query = params.toString() ? `?${params.toString()}` : '';
     try {
       const [jobResponse, applicationResponse] = await Promise.all([
-        fetch(`${apiUrl}/jobs/recommended`, { headers: { Authorization: `Bearer ${token}` } }),
+        fetch(`${apiUrl}/jobs/recommended${query}`, { headers: { Authorization: `Bearer ${token}` } }),
         fetch(`${apiUrl}/applications/me`, { headers: { Authorization: `Bearer ${token}` } }),
       ]);
       const jobData = await jobResponse.json();
@@ -196,6 +203,25 @@ export default function App() {
         window.URL.revokeObjectURL(url);
       })
       .catch((requestError) => setResumeStatus(requestError.message));
+  }
+
+  async function removeResume() {
+    if (!window.confirm('Remove your uploaded resume? This cannot be undone.')) return;
+    const token = localStorage.getItem('placementPortalToken');
+    try {
+      const response = await fetch(`${apiUrl}/resume`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message ?? 'Unable to remove resume.');
+      setResume(null);
+      setResumeStatus('Resume removed.');
+      await loadCareerData();
+      await loadRoadmap();
+    } catch (requestError) {
+      setResumeStatus(requestError.message);
+    }
   }
 
   async function applyForJob(jobId) {
@@ -312,7 +338,10 @@ export default function App() {
                 <div className="resume-summary">
                   <div className="application-row">
                     <span><strong>{resume.originalName}</strong> · uploaded {new Date(resume.uploadedAt).toLocaleDateString()}</span>
-                    <button type="button" className="secondary-button" onClick={downloadResume}>Download</button>
+                    <span className="resume-actions">
+                      <button type="button" className="secondary-button" onClick={downloadResume}>Download</button>
+                      <button type="button" className="danger-button" onClick={removeResume}>Remove</button>
+                    </span>
                   </div>
                   <p className="skills">{resume.skills?.length ? `Skills detected: ${resume.skills.join(' · ')}` : 'No known skill keywords were detected in this file.'}</p>
                 </div>
@@ -340,9 +369,26 @@ export default function App() {
                   <p className="eyebrow">Phase 4 · Jobs</p>
                   <h2 id="jobs-heading">Recommended for you</h2>
                 </div>
-                <button type="button" className="secondary-button" onClick={loadCareerData}>Refresh jobs</button>
+                <button type="button" className="secondary-button" onClick={() => loadCareerData()}>Refresh jobs</button>
               </div>
               <p className="muted">Match scores compare your saved skills with each job’s required skills.</p>
+              <form className="job-filters" onSubmit={(event) => { event.preventDefault(); loadCareerData(jobFilters); }}>
+                <input type="search" placeholder="Search title, company, location or skill" value={jobFilters.q} onChange={(event) => setJobFilters({ ...jobFilters, q: event.target.value })} />
+                <select value={jobFilters.workMode} onChange={(event) => setJobFilters({ ...jobFilters, workMode: event.target.value })}>
+                  <option value="">All work modes</option>
+                  <option value="On-site">On-site</option>
+                  <option value="Hybrid">Hybrid</option>
+                  <option value="Remote">Remote</option>
+                </select>
+                <select value={jobFilters.minMatch} onChange={(event) => setJobFilters({ ...jobFilters, minMatch: event.target.value })}>
+                  <option value="0">Any match</option>
+                  <option value="25">25%+ match</option>
+                  <option value="50">50%+ match</option>
+                  <option value="75">75%+ match</option>
+                </select>
+                <button className="primary-button">Apply filters</button>
+                <button type="button" className="secondary-button" onClick={() => { setJobFilters(defaultJobFilters); loadCareerData(defaultJobFilters); }}>Clear</button>
+              </form>
               {jobStatus && <p className={jobStatus === 'Application submitted.' ? 'form-success' : 'form-error'} role="status">{jobStatus}</p>}
               <div className="job-grid">
                 {jobs.map((job) => {
@@ -359,7 +405,7 @@ export default function App() {
                   );
                 })}
               </div>
-              {!jobs.length && <p className="muted">No jobs yet. Run the sample-job seed command below.</p>}
+              {!jobs.length && <p className="muted">No jobs match these filters. Clear them, or run the sample-job seed command below.</p>}
             </section>
             <section className="applications-section" aria-labelledby="applications-heading">
               <h2 id="applications-heading">My applications</h2>
